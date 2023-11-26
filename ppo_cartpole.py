@@ -182,8 +182,8 @@ def main():
             score = 0
 
         if epi_step % save_interval == 0:
-            torch.save(model, f'toy_output/checkpoint_{epi_step}.pt')
-            model = torch.load(f'toy_output/checkpoint_{epi_step}.pt')
+            torch.save(model, f'output/checkpoint_{epi_step}.pt')
+            model = torch.load(f'output/checkpoint_{epi_step}.pt')
 
         if epi_step % render_interval == 0:
             env.close()

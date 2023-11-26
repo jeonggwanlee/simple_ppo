@@ -12,7 +12,7 @@ import os
 
 # Environment(Cartpole) related parameters
 NUM_ACTION = 2
-T_horizon = 20
+episode_length = 100
 
 # (Learning) Hyperparameters
 learning_rate = 0.0005     # 0.0005
@@ -143,8 +143,8 @@ def main():
     train_time = []
     os.makedirs('output', exist_ok=True)
 
-    for epi_step in range(num_episodes):
-        if epi_step % render_interval == 0:
+    for epi_i in range(num_episodes):
+        if epi_i % render_interval == 0:
             env.close()
             env = gym.make('CartPole-v1', render_mode='human')
 
@@ -153,7 +153,7 @@ def main():
         while not done:
             # Collect
             c_start = time.time()
-            for t in range(T_horizon):
+            for t in range(episode_length):
                 output = model.forward(torch.from_numpy(s).float(), return_value=False)
                 a = Categorical(output['prob']).sample().item()
                 next_s, r, done, truncated, info = env.step(a)
@@ -179,17 +179,17 @@ def main():
             model.train_net()
             train_time.append(time.time() - t_start)
 
-        if epi_step % print_interval == 0 and epi_step != 0:
-            print(f"# of episode : {epi_step}, avg_score : {score/print_interval:.1f}")
+        if epi_i % print_interval == 0 and epi_i != 0:
+            print(f"# of episode : {epi_i}, avg_score : {score/print_interval:.1f}")
             # print(f"avg collect time : {sum(collect_time) / len(collect_time)}")
             # print(f"avg train time : {sum(train_time) / len(train_time)}")
             score = 0
 
-        if epi_step % save_interval == 0:
-            torch.save(model, f'output/checkpoint_{epi_step}.pt')
-            model = torch.load(f'output/checkpoint_{epi_step}.pt')
+        if epi_i % save_interval == 0:
+            torch.save(model, f'output/checkpoint_{epi_i}.pt')
+            model = torch.load(f'output/checkpoint_{epi_i}.pt')
 
-        if epi_step % render_interval == 0:
+        if epi_i % render_interval == 0:
             env.close()
             env = gym.make('CartPole-v1')
 

@@ -17,6 +17,7 @@ T_horizon = 20
 # (Learning) Hyperparameters
 learning_rate = 0.0005     # 0.0005
 num_episodes  = int(1e4)   # 10000
+fixed_batch = False
 batch_size = 128
 
 # PPO Hyperparameters
@@ -65,11 +66,13 @@ class PPO(nn.Module):
         self.transition_lst.append(transition)
 
     def make_batch(self):
-        if len(self.transition_lst) < batch_size:
-            return
+        if fixed_batch:
+            if len(self.transition_lst) < batch_size:
+                return
 
         s_lst, a_lst, r_lst, next_s_lst, prob_a_old_lst, done_lst = [], [], [], [], [], []
-        for transition in self.transition_lst[:batch_size]:
+        transition_lst = self.transition_lst[:batch_size] if fixed_batch else self.transition_lst
+        for transition in transition_lst:
             s_lst.append(transition['s'])
             a_lst.append([transition['a']])
             r_lst.append([transition['r']])
@@ -86,7 +89,8 @@ class PPO(nn.Module):
             'prob_a_old': torch.tensor(prob_a_old_lst),
             'done_mask': torch.tensor(done_lst, dtype=torch.float)
         }
-        self.transition_lst = self.transition_lst[batch_size:]
+        
+        self.transition_lst = self.transition_lst[batch_size:] if fixed_batch else []
         return batch
 
     def train_net(self):
